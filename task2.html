@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>3D AI · FAQ Intelligent Chatbot</title>
+    <!-- Google Fonts + Font Awesome -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        background: radial-gradient(circle at 30% 10%, #1e0a2e, #0d071a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+      }
+
+      /* animated glowing orbs */
+      body::before {
+        content: "";
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background:
+          radial-gradient(
+            circle at 20% 40%,
+            rgba(255, 80, 220, 0.3) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 85% 70%,
+            rgba(180, 70, 255, 0.25) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* 3D perspective */
+      .scene {
+        perspective: 1400px;
+        perspective-origin: 50% 40%;
+        width: 100%;
+        max-width: 1400px;
+        z-index: 2;
+      }
+
+      /* main glass card */
+      .ai-chat-card {
+        background: rgba(15, 12, 30, 0.7);
+        backdrop-filter: blur(16px);
+        border-radius: 3rem;
+        box-shadow:
+          0 40px 60px -30px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(255, 120, 200, 0.3) inset;
+        transform-style: preserve-3d;
+        transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        transform: rotateX(1deg) rotateY(-0.5deg) translateZ(0);
+      }
+
+      .ai-chat-card:hover {
+        transform: rotateX(0deg) rotateY(1deg) translateY(-8px) translateZ(15px);
+      }
+
+      .card-header {
+        background: linear-gradient(
+          125deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid rgba(220, 100, 220, 0.5);
+        border-radius: 3rem 3rem 0 0;
+      }
+
+      .card-header h1 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffddff, #e9a8ff, #d473ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .badge-ai {
+        background: rgba(255, 255, 240, 0.1);
+        border-radius: 60px;
+        padding: 0.2rem 1rem;
+        font-size: 0.7rem;
+        border: 1px solid #e879f9;
+      }
+
+      /* two column layout */
+      .chat-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.8rem;
+        padding: 2rem 2rem 1.8rem;
+      }
+
+      /* glass panels */
+      .glass-panel {
+        background: rgba(5, 8, 24, 0.6);
+        backdrop-filter: blur(8px);
+        border-radius: 1.8rem;
+        padding: 1.2rem;
+        border: 1px solid rgba(210, 100, 240, 0.4);
+        transition: all 0.2s;
+      }
+
+      .glass-panel:hover {
+        border-color: #e879f9;
+        box-shadow: 0 20px 28px -15px #000000b3;
+      }
+
+      .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #f3d6ff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 4px solid #d946ef;
+        padding-left: 1rem;
+      }
+
+      /* chat area */
+      .chat-messages {
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 1.5rem;
+        height: 280px;
+        overflow-y: auto;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .message {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        animation: fadeSlide 0.2s ease;
+      }
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .user-msg {
+        justify-content: flex-end;
+      }
+      .user-msg .bubble {
+        background: linear-gradient(115deg, #7c3aed, #a855f7);
+        color: white;
+        border-radius: 1.8rem 1.8rem 0.5rem 1.8rem;
+      }
+      .bot-msg .bubble {
+        background: rgba(30, 25, 55, 0.9);
+        border: 1px solid #c084fc;
+        color: #f0eaff;
+        border-radius: 1.8rem 1.8rem 1.8rem 0.5rem;
+      }
+      .bubble {
+        max-width: 80%;
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+      .avatar-icon {
+        width: 32px;
+        height: 32px;
+        background: #2d1b4e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* input row */
+      .input-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 0.5rem;
+      }
+      .input-row input {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid #a855f7;
+        border-radius: 3rem;
+        padding: 0.8rem 1.2rem;
+        color: white;
+        outline: none;
+      }
+      .input-row input:focus {
+        border-color: #f0abfc;
+        box-shadow: 0 0 0 2px #c084fc40;
+      }
+      .send-btn {
+        background: linear-gradient(115deg, #a855f7, #7c3aed);
+        border: none;
+        border-radius: 3rem;
+        width: 48px;
+        cursor: pointer;
+        color: white;
+        font-size: 1.2rem;
+        transition: 0.07s linear;
+      }
+      .send-btn:active {
+        transform: scale(0.94);
+      }
+
+      /* FAQ list (separate section) */
+      .faq-list {
+        max-height: 360px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .faq-item {
+        background: rgba(0, 0, 0, 0.45);
+        border-radius: 1.2rem;
+        padding: 0.7rem 1rem;
+        border-left: 3px solid #d946ef;
+        cursor: pointer;
+        transition: 0.1s;
+      }
+      .faq-item:hover {
+        background: #7c3aed30;
+        transform: translateX(4px);
+      }
+      .faq-question {
+        font-weight: 600;
+        color: #f1d6ff;
+        font-size: 0.85rem;
+      }
+      .faq-answer-preview {
+        font-size: 0.75rem;
+        color: #c0b0e0;
+        margin-top: 4px;
+        display: none;
+      }
+      .faq-item.expanded .faq-answer-preview {
+        display: block;
+      }
+      .helper-note {
+        font-size: 0.7rem;
+        color: #b39fda;
+        margin-top: 1rem;
+        text-align: center;
+      }
+
+      footer {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.7rem;
+        color: #9a7fc2;
+        border-top: 1px solid #ffffff0c;
+      }
+
+      @media (max-width: 800px) {
+        .chat-grid {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        body {
+          padding: 1rem;
+        }
+      }
+
+      .toast-glow {
+        position: fixed;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e1a2fcc;
+        backdrop-filter: blur(12px);
+        padding: 8px 22px;
+        border-radius: 40px;
+        color: #fad6ff;
+        font-weight: 500;
+        z-index: 1200;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        border: 1px solid #c084fc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div class="ai-chat-card">
+        <div class="card-header">
+          <h1>
+            <i class="fas fa-robot"></i> Neural FAQ Bot<span class="badge-ai"
+              ><i class="fas fa-brain"></i> cosine similarity</span
+            >
+          </h1>
+          <p>
+            NLP preprocessing · tokenization · stopword removal · intelligent
+            FAQ matching
+          </p>
+        </div>
+
+        <div class="chat-grid">
+          <!-- LEFT: Chatbot interface -->
+          <div class="glass-panel">
+            <div class="section-title">
+              <i class="fas fa-comment-dots"></i> 💬 Live Assistant
+            </div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="message bot-msg">
+                <div class="avatar-icon"><i class="fas fa-brain"></i></div>
+                <div class="bubble">
+                  👋 Hey! I'm your FAQ bot. Ask me anything about our product,
+                  pricing, password reset, support, refunds etc.
+                </div>
+              </div>
+            </div>
+            <div class="input-row">
+              <input
+                type="text"
+                id="userQuestion"
+                placeholder="e.g., How do I reset my password?"
+                autocomplete="off"
+              />
+              <button class="send-btn" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+            <div class="helper-note">
+              <i class="fas fa-magic"></i> Real‑time NLP matching · cosine
+              similarity & TF vectors
+            </div>
+          </div>
+
+          <!-- RIGHT: Separate FAQ library section (click any to ask) -->
+          <div class="glass-panel">
+            <div class="section-title">
+              <i class="fas fa-database"></i> 📚 FAQ Knowledge Base
+            </div>
+            <div id="faqListContainer" class="faq-list"></div>
+            <div class="helper-note">
+              <i class="fas fa-chart-line"></i> Preprocessed & indexed · click
+              to instantly ask
+            </div>
+          </div>
+        </div>
+        <footer>
+          <i class="fas fa-crystal-ball"></i> Full client‑side NLP · no external
+          API · 3D glassmorphic UI
+        </footer>
+      </div>
+    </div>
+    <div id="globalToast" class="toast-glow">✨ matched with FAQ</div>
+
+    <script>
+      // ----------------------------- FAQ DATASET (questions + answers) -----------------------------
+      const FAQ_DATA = [
+        {
+          question: "What is NeuralFAQ AI?",
+          answer:
+            "NeuralFAQ AI is an intelligent assistant that uses natural language processing to answer frequently asked questions instantly.",
+        },
+        {
+          question: "How to reset my password?",
+          answer:
+            "Click 'Forgot Password' on the login page. An email with reset instructions will be sent to your registered email.",
+        },
+        {
+          question: "What are your pricing plans?",
+          answer:
+            "We offer Free tier (basic features), Pro at $9.99/month, and Enterprise with custom pricing.",
+        },
+        {
+          question: "Is there a mobile app?",
+          answer:
+            "Yes! Available on iOS App Store and Google Play. Also a full web version.",
+        },
+        {
+          question: "How can I contact support?",
+          answer:
+            "Email support@neuralfaq.com or use live chat on our website (9 AM – 6 PM EST).",
+        },
+        {
+          question: "Do you offer refunds?",
+          answer:
+            "Yes, 30-day money-back guarantee for all paid plans. Contact billing@neuralfaq.com.",
+        },
+        {
+          question: "How accurate is the AI?",
+          answer:
+            "Our AI uses transformer models with 94%+ accuracy on standard FAQ tasks.",
+        },
+        {
+          question: "Can I integrate with Slack?",
+          answer:
+            "Absolutely – we provide API integrations for Slack, Teams, and Discord.",
+        },
+        {
+          question: "Is my data secure?",
+          answer:
+            "Yes, end-to-end encryption, GDPR compliance, and regular audits.",
+        },
+        {
+          question: "How to upgrade my plan?",
+          answer:
+            "Go to Dashboard → Billing → Choose Plan. Upgrade activates instantly.",
+        },
+      ];
+
+      // ----------------------------- NLP: tokenization, stopword removal -----------------------------
+      const STOPWORDS = new Set([
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "by",
+        "for",
+        "from",
+        "has",
+        "he",
+        "in",
+        "is",
+        "it",
+        "its",
+        "of",
+        "on",
+        "that",
+        "the",
+        "to",
+        "was",
+        "were",
+        "will",
+        "with",
+        "i",
+        "you",
+        "we",
+        "they",
+        "this",
+        "that",
+        "these",
+        "those",
+        "how",
+        "what",
+        "why",
+        "where",
+        "which",
+        "who",
+        "whom",
+        "do",
+        "does",
+        "did",
+        "have",
+        "had",
+        "having",
+        "can",
+        "could",
+        "would",
+        "should",
+        "may",
+        "might",
+        "must",
+        "not",
+        "for",
+        "but",
+        "so",
+        "very",
+        "just",
+        "like",
+        "your",
+        "my",
+        "me",
+        "his",
+        "her",
+        "our",
+        "their",
+      ]);
+
+      function preprocess(text) {
+        // lowercase, remove punctuation, split, filter stopwords + short tokens
+        let lower = text.toLowerCase();
+        let noPunct = lower.replace(/[^\w\s]/g, " ");
+        let tokens = noPunct
+          .split(/\s+/)
+          .filter((t) => t.length > 1 && !STOPWORDS.has(t));
+        return tokens;
+      }
+
+      // Build global vocabulary from all FAQ questions
+      let vocabulary = [];
+      let faqTokens = [];
+      let faqVectors = [];
+
+      function buildKnowledgeBase() {
+        faqTokens = FAQ_DATA.map((faq) => preprocess(faq.question));
+        const termSet = new Set();
+        for (let tokens of faqTokens) {
+          for (let t of tokens) termSet.add(t);
+        }
+        vocabulary = Array.from(termSet);
+        // compute TF vectors (raw frequency)
+        faqVectors = faqTokens.map((tokens) => {
+          const vec = new Array(vocabulary.length).fill(0);
+          const freq = {};
+          for (let t of tokens) freq[t] = (freq[t] || 0) + 1;
+          for (let i = 0; i < vocabulary.length; i++) {
+            const term = vocabulary[i];
+            if (freq[term]) vec[i] = freq[term];
+          }
+          return vec;
+        });
+      }
+
+      function cosineSimilarity(vecA, vecB) {
+        let dot = 0,
+          magA = 0,
+          magB = 0;
+        for (let i = 0; i < vecA.length; i++) {
+          dot += vecA[i] * vecB[i];
+          magA += vecA[i] * vecA[i];
+          magB += vecB[i] * vecB[i];
+        }
+        if (magA === 0 || magB === 0) return 0;
+        return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+      }
+
+      function findBestMatch(query) {
+        const queryTokens = preprocess(query);
+        if (queryTokens.length === 0) return { index: -1, score: 0 };
+        const queryVec = new Array(vocabulary.length).fill(0);
+        const qFreq = {};
+        for (let t of queryTokens) qFreq[t] = (qFreq[t] || 0) + 1;
+        for (let i = 0; i < vocabulary.length; i++) {
+          const term = vocabulary[i];
+          if (qFreq[term]) queryVec[i] = qFreq[term];
+        }
+        let bestIdx = -1,
+          bestSim = -1;
+        for (let i = 0; i < faqVectors.length; i++) {
+          let sim = cosineSimilarity(queryVec, faqVectors[i]);
+          if (sim > bestSim) {
+            bestSim = sim;
+            bestIdx = i;
+          }
+        }
+        return { index: bestIdx, score: bestSim };
+      }
+
+      function getAnswer(question) {
+        if (!question.trim()) return "Please ask a question.";
+        const match = findBestMatch(question);
+        // threshold 0.05 ensures a reasonable match (low similarity still gives fallback)
+        if (match.index !== -1 && match.score > 0.05) {
+          return FAQ_DATA[match.index].answer;
+        } else {
+          return "I couldn't find a precise match. Please rephrase or pick a question from the FAQ library on the right. 🙂";
+        }
+      }
+
+      // ----------------------------- UI & Chatbot rendering -----------------------------
+      const chatContainer = document.getElementById("chatMessages");
+      const userInput = document.getElementById("userQuestion");
+      const sendBtn = document.getElementById("sendBtn");
+      const faqContainer = document.getElementById("faqListContainer");
+      const toast = document.getElementById("globalToast");
+
+      function showToastMessage(msg, duration = 1500) {
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        setTimeout(() => {
+          toast.style.opacity = "0";
+        }, duration);
+      }
+
+      function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function (m) {
+          if (m === "&") return "&amp;";
+          if (m === "<") return "&lt;";
+          if (m === ">") return "&gt;";
+          return m;
+        });
+      }
+
+      function addMessage(text, isUser = false) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${isUser ? "user-msg" : "bot-msg"}`;
+        if (isUser) {
+          msgDiv.innerHTML = `
+        <div class="bubble">${escapeHtml(text)}</div>
+        <div class="avatar-icon"><i class="fas fa-user-astronaut"></i></div>
+      `;
+        } else {
+          msgDiv.innerHTML = `
+        <div class="avatar-icon"><i class="fas fa-robot"></i></div>
+        <div class="bubble">${escapeHtml(text)}</div>
+      `;
+        }
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      async function processUserQuery() {
+        const rawQuestion = userInput.value.trim();
+        if (!rawQuestion) {
+          showToastMessage("Please type a question.");
+          return;
+        }
+        addMessage(rawQuestion, true);
+        userInput.value = "";
+        // show "typing" indicator
+        const typingId = "typing_" + Date.now();
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot-msg";
+        typingDiv.id = typingId;
+        typingDiv.innerHTML = `<div class="avatar-icon"><i class="fas fa-brain"></i></div><div class="bubble"><i class="fas fa-ellipsis-h"></i> Thinking...</div>`;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // simulate slight processing delay for realism
+        await new Promise((r) => setTimeout(r, 280));
+        const answer = getAnswer(rawQuestion);
+        document.getElementById(typingId)?.remove();
+        addMessage(answer, false);
+        showToastMessage(`✅ Similarity match processed`, 1200);
+      }
+
+      // Render FAQ Library (separate section with click to ask)
+      function buildFaqLibrary() {
+        faqContainer.innerHTML = "";
+        FAQ_DATA.forEach((faq, idx) => {
+          const faqDiv = document.createElement("div");
+          faqDiv.className = "faq-item";
+          faqDiv.innerHTML = `
+        <div class="faq-question"><i class="fas fa-question-circle"></i> ${escapeHtml(faq.question)}</div>
+        <div class="faq-answer-preview">${escapeHtml(faq.answer.length > 90 ? faq.answer.substring(0, 90) + "…" : faq.answer)}</div>
+      `;
+          // Click on FAQ item -> auto fill and send
+          faqDiv.addEventListener("click", () => {
+            userInput.value = faq.question;
+            processUserQuery();
+            showToastMessage(
+              `Asking: "${faq.question.substring(0, 60)}..."`,
+              1400,
+            );
+          });
+          faqDiv.addEventListener("mouseenter", () =>
+            faqDiv.classList.add("expanded"),
+          );
+          faqDiv.addEventListener("mouseleave", () =>
+            faqDiv.classList.remove("expanded"),
+          );
+          faqContainer.appendChild(faqDiv);
+        });
+      }
+
+      // Initial welcome message (clear dummy)
+      function initChat() {
+        chatContainer.innerHTML = "";
+        addMessage(
+          "👋 Hey! I'm your FAQ bot. Ask me anything about our product, pricing, password reset, support, refunds etc.",
+          false,
+        );
+      }
+
+      // ======================== INITIALIZE EVERYTHING ========================
+      buildKnowledgeBase(); // builds vocabulary & vectors for cosine similarity
+      buildFaqLibrary(); // separate FAQ section
+      initChat(); // start chat UI
+
+      // Event listeners
+      sendBtn.addEventListener("click", () => processUserQuery());
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          processUserQuery();
+        }
+      });
+    </script>
+  </body>
+</html>
